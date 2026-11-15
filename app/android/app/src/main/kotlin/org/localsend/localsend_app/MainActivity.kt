@@ -108,6 +108,25 @@ class MainActivity : FlutterActivity() {
 
                 "scanFile" -> handleScanFile(call, result)
 
+                "getDirectoryInfo" -> {
+                    val uri = call.argument<String>("uri")
+                    if (uri == null) {
+                        result.error("INVALID_ARGUMENT", "Missing content URI", null)
+                    } else {
+                        result.success(getDirectoryInfo(applicationContext, uri))
+                    }
+                }
+
+                "releasePersistablePermission" -> {
+                    val uri = call.argument<String>("uri")
+                    if (uri == null) {
+                        result.error("INVALID_ARGUMENT", "Missing content URI", null)
+                    } else {
+                        releasePersistablePermission(applicationContext, uri)
+                        result.success(null)
+                    }
+                }
+
                 "openContentUri" -> {
                     openUri(context, call.argument<String>("uri")!!)
                     result.success(null)
@@ -327,7 +346,13 @@ class MainActivity : FlutterActivity() {
 
     private fun openDirectoryPicker(onlyPath: Boolean) {
         val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE)
-        intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION)
+        // The write flag matters for folders that received files are saved into
+        // (the destination setting and the extension rules).
+        intent.addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION or
+                Intent.FLAG_GRANT_WRITE_URI_PERMISSION or
+                Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+        )
         startActivityForResult(
             intent,
             if (onlyPath) REQUEST_CODE_PICK_DIRECTORY_PATH else REQUEST_CODE_PICK_DIRECTORY
