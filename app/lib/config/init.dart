@@ -14,6 +14,7 @@ import 'package:localsend_app/pages/whats_new_page.dart';
 import 'package:localsend_app/provider/animation_provider.dart';
 import 'package:localsend_app/provider/app_arguments_provider.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
+import 'package:localsend_app/provider/extension_rules_provider.dart';
 import 'package:localsend_app/provider/network/nearby_devices_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
 import 'package:localsend_app/provider/network/webrtc/signaling_provider.dart';
@@ -53,6 +54,7 @@ import 'package:refena_flutter/addons.dart';
 import 'package:refena_flutter/refena_flutter.dart';
 import 'package:routerino/routerino.dart';
 import 'package:share_handler/share_handler.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:window_manager/window_manager.dart';
 
 final _logger = Logger('Init');
@@ -88,6 +90,9 @@ Future<RefenaContainer> preInit(List<String> args) async {
   final persistenceService = await PersistenceService.initialize(
     supportsDynamicColors: dynamicColors != null,
   );
+
+  // The extension rules are kept in their own key of the same store.
+  final sharedPreferences = await SharedPreferences.getInstance();
 
   if (persistenceService.isFirstAppStart && !persistenceService.isPortableMode()) {
     await enableContextMenu();
@@ -150,6 +155,7 @@ Future<RefenaContainer> preInit(List<String> args) async {
     observers: kDebugMode ? [CustomRefenaObserver()] : [],
     overrides: [
       persistenceProvider.overrideWithValue(persistenceService),
+      extensionRulesProvider.overrideWithNotifier((ref) => ExtensionRulesService(sharedPreferences)),
       deviceRawInfoProvider.overrideWithValue(await getDeviceInfo()),
       appArgumentsProvider.overrideWithValue(args),
       tvProvider.overrideWithValue(await checkIfTv()),
