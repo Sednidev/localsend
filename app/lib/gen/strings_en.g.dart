@@ -343,9 +343,9 @@ class Translations$extensionRulesPage$en {
   /// en: 'Extension rules'
   String get title => 'Extension rules';
 
-  /// en: 'Incoming files are saved to the folder of the first rule that matches their extension. Other files keep using the default destination folder.'
+  /// en: 'Incoming files are saved to the folder of the rule that matches their extension, even when "save to gallery" is enabled. Other files keep using the default destination folder.'
   String get info =>
-      'Incoming files are saved to the folder of the first rule that matches their extension. Other files keep using the default destination folder.';
+      'Incoming files are saved to the folder of the rule that matches their extension, even when "save to gallery" is enabled. Other files keep using the default destination folder.';
 
   /// en: 'No rules yet'
   String get empty => 'No rules yet';

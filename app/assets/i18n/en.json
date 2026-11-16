@@ -190,7 +190,7 @@
   },
   "extensionRulesPage": {
     "title": "Extension rules",
-    "info": "Incoming files are saved to the folder of the first rule that matches their extension. Other files keep using the default destination folder.",
+    "info": "Incoming files are saved to the folder of the rule that matches their extension, even when \"save to gallery\" is enabled. Other files keep using the default destination folder.",
     "empty": "No rules yet",
     "add": "Add rule",
     "invalid": "This folder is no longer accessible. Matching files are saved to the default folder.",
