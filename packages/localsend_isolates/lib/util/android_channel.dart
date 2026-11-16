@@ -58,7 +58,10 @@ Future<void> createMissingDirectoriesAndroid({
   final parts = fileName.split('/');
   for (int i = 0; i < parts.length - 1; i++) {
     final subDirPath = parts.sublist(0, i + 1).join('/');
-    if (createdDirectories.contains(subDirPath)) {
+    // The set is shared by a whole session, and a session may write into
+    // several roots (one per extension rule), so the root is part of the key.
+    final key = '$parentUri/$subDirPath';
+    if (createdDirectories.contains(key)) {
       continue;
     }
 
@@ -69,7 +72,7 @@ Future<void> createMissingDirectoriesAndroid({
       ),
       directoryName: parts[i],
     );
-    createdDirectories.add(subDirPath);
+    createdDirectories.add(key);
   }
 }
 
