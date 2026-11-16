@@ -546,6 +546,9 @@ class Translations$progressPage$en {
   /// en: 'Receiving files'
   String get titleReceiving => 'Receiving files';
 
+  /// en: 'Saved to'
+  String get savedTo => 'Saved to';
+
   /// en: 'Saved in Photos'
   String get savedToGallery => 'Saved in Photos';
 

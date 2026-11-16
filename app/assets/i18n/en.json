@@ -266,6 +266,7 @@
   "progressPage": {
     "titleSending": "Sending files",
     "titleReceiving": "Receiving files",
+    "savedTo": "Saved to",
     "savedToGallery": "Saved in Photos",
     "total": {
       "title": {
