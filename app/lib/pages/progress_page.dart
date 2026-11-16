@@ -7,6 +7,7 @@ import 'package:localsend_app/config/theme.dart';
 import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/pages/web_share_page.dart';
+import 'package:localsend_app/provider/extension_rules_provider.dart';
 import 'package:localsend_app/provider/file_transfer_provider.dart';
 import 'package:localsend_app/provider/network/send_provider.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
@@ -16,6 +17,7 @@ import 'package:localsend_app/util/native/open_folder.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/taskbar_helper.dart';
 import 'package:localsend_app/util/notification_strings.dart';
+import 'package:localsend_app/util/receive_folder_summary.dart';
 import 'package:localsend_app/util/ui/nav_bar_padding.dart';
 import 'package:localsend_app/widget/custom_progress_bar.dart';
 import 'package:localsend_app/widget/dialogs/cancel_session_dialog.dart';
@@ -191,6 +193,61 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
     }
   }
 
+  /// Shows where the received files went.
+  ///
+  /// An extension rule saves its files into another folder than the session
+  /// destination, so listing only the destination folder would be wrong as soon
+  /// as a rule is in use. Without rules the header looks exactly as before.
+  Widget _buildDestinationInfo(BuildContext context, ReceiveSessionState receiveSession) {
+    final folders = summarizeReceivedFolders(
+      session: receiveSession,
+      rules: ref.watch(extensionRulesProvider),
+    );
+    final isIOS = checkPlatform([TargetPlatform.iOS]);
+    final folderStyle = TextStyle(
+      color: isIOS ? Colors.grey : Theme.of(context).colorScheme.primary,
+    );
+
+    TextSpan folderSpan(ReceiveFolder folder) {
+      return TextSpan(
+        text: folder.label,
+        style: folderStyle,
+        recognizer: isIOS
+            ? null
+            : (TapGestureRecognizer()
+                ..onTap = () async {
+                  await openFolder(folderPath: folder.path);
+                }),
+      );
+    }
+
+    final usesRules = folders.any((folder) => folder.isRuleFolder);
+    final label = usesRules ? t.progressPage.savedTo : t.settingsTab.receive.destination;
+
+    if (folders.length == 1) {
+      return Text.rich(
+        TextSpan(
+          children: [
+            TextSpan(
+              text: '$label: ',
+              style: const TextStyle(color: Colors.grey),
+            ),
+            folderSpan(folders.single),
+          ],
+        ),
+      );
+    }
+
+    // Several folders can only happen with extension rules: one line per folder.
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('$label:', style: const TextStyle(color: Colors.grey)),
+        for (final folder in folders) Text.rich(TextSpan(children: [folderSpan(folder)])),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final transferNotifier = ref.watch(fileTransferProvider);
@@ -295,28 +352,7 @@ class _ProgressPageState extends State<ProgressPage> with Refena {
                         if (checkPlatformWithFileSystem() && receiveSession != null)
                           Padding(
                             padding: const EdgeInsets.only(bottom: 10),
-                            child: Text.rich(
-                              TextSpan(
-                                children: [
-                                  TextSpan(
-                                    text: '${t.settingsTab.receive.destination}: ',
-                                    style: const TextStyle(color: Colors.grey),
-                                  ),
-                                  TextSpan(
-                                    text: receiveSession.destinationDirectory,
-                                    style: TextStyle(
-                                      color: checkPlatform([TargetPlatform.iOS]) ? Colors.grey : Theme.of(context).colorScheme.primary,
-                                    ),
-                                    recognizer: checkPlatform([TargetPlatform.iOS])
-                                        ? null
-                                        : (TapGestureRecognizer()
-                                            ..onTap = () async {
-                                              await openFolder(folderPath: receiveSession.destinationDirectory);
-                                            }),
-                                  ),
-                                ],
-                              ),
-                            ),
+                            child: _buildDestinationInfo(context, receiveSession),
                           ),
                       ],
                     ),
