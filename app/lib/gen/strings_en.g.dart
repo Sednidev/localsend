@@ -355,6 +355,10 @@ class Translations$extensionRulesPage$en {
 
   /// en: 'This folder is no longer accessible. Matching files are saved to the default folder.'
   String get invalid => 'This folder is no longer accessible. Matching files are saved to the default folder.';
+
+  /// en: 'The folder "{folder}" of an extension rule is no longer accessible. Matching files are saved to the default folder.'
+  String folderUnavailableNotification({required Object folder}) =>
+      'The folder "${folder}" of an extension rule is no longer accessible. Matching files are saved to the default folder.';
 }
 
 // Path: receiveHistoryPage
