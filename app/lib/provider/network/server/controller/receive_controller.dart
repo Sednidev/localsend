@@ -451,7 +451,6 @@ class ReceiveController {
     }
   }
 
-  /// An upload session ended on the Rust server.
   /// A file was saved to the default folder because the folder of the rule it
   /// matched could not be written to. The rule is marked as invalid so that it
   /// is not tried again, and the user is told about it.
@@ -479,6 +478,7 @@ class ReceiveController {
     context.showSnackBar(t.extensionRulesPage.folderUnavailableNotification(folder: folderName));
   }
 
+  /// An upload session ended on the Rust server.
   void onSessionEnd(HttpServerSessionEndEvent event) {
     final receiveSession = server.getStateOrNull()?.session;
     if (receiveSession == null || receiveSession.sessionId != event.sessionId) {
