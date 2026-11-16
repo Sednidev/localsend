@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:localsend_app/model/persistence/extension_rule.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/model/state/server/receiving_file.dart';
 import 'package:localsend_app/pages/home_page.dart';
@@ -10,6 +11,7 @@ import 'package:localsend_app/pages/home_page_controller.dart';
 import 'package:localsend_app/pages/progress_page.dart';
 import 'package:localsend_app/pages/receive_page.dart';
 import 'package:localsend_app/provider/device_info_provider.dart';
+import 'package:localsend_app/provider/extension_rules_provider.dart';
 import 'package:localsend_app/provider/favorites_provider.dart';
 import 'package:localsend_app/provider/file_transfer_provider.dart';
 import 'package:localsend_app/provider/http_provider.dart';
@@ -612,6 +614,8 @@ class ReceiveController {
       cacheDirectory: session.cacheDirectory,
       saveToGallery: session.saveToGallery,
       androidSdkInt: server.ref.read(deviceInfoProvider).androidSdkInt,
+      // Rules are Android only: their folders are SAF tree URIs.
+      extensionRuleDestinations: checkPlatform([TargetPlatform.android]) ? server.ref.read(extensionRulesProvider).toDestinationMap() : const {},
     );
   }
 
