@@ -10,6 +10,7 @@ import 'package:localsend_isolates/rust/api/server.dart';
 import 'package:localsend_isolates/src/isolate/child/main.dart';
 import 'package:localsend_isolates/src/isolate/child/sync_provider.dart';
 import 'package:localsend_isolates/src/isolate/dto/send_to_isolate_data.dart';
+import 'package:localsend_isolates/src/task/server/extension_rule_resolver.dart';
 import 'package:localsend_isolates/src/task/server/file_saver.dart';
 import 'package:localsend_isolates/src/task/server/http_server.dart';
 import 'package:localsend_isolates/util/android_channel.dart';
@@ -79,6 +80,13 @@ class HttpServerReceiveConfig {
   /// for destinations that cannot be written directly.
   final int? androidSdkInt;
 
+  /// Maps a lower case file extension (without the leading dot) to the SAF
+  /// tree URI of a folder that an extension rule points at.
+  ///
+  /// Empty when the feature does not apply (no rules, or not on Android).
+  /// Rules whose folder is not accessible are not part of the map.
+  final Map<String, String> extensionRuleDestinations;
+
   HttpServerReceiveConfig({
     required this.sessionId,
     required this.fileNameMap,
@@ -86,6 +94,7 @@ class HttpServerReceiveConfig {
     required this.cacheDirectory,
     required this.saveToGallery,
     required this.androidSdkInt,
+    this.extensionRuleDestinations = const {},
   });
 }
 
@@ -630,7 +639,15 @@ Future<void> _handleFileUpload({
   final desiredName = config.fileNameMap[fileId]!;
   final dartFile = file.toDart();
   final isImage = dartFile.fileType == FileType.image;
-  final shouldSaveToGallery = config.saveToGallery && (isImage || dartFile.fileType == FileType.video);
+
+  // An extension rule sends the file to its own folder and skips the gallery.
+  final destination = resolveIncomingFileDestination(
+    fileName: desiredName,
+    destinationDirectory: config.destinationDirectory,
+    saveToGallery: config.saveToGallery,
+    destinationByExtension: config.extensionRuleDestinations,
+  );
+  final shouldSaveToGallery = destination.saveToGallery && (isImage || dartFile.fileType == FileType.video);
 
   void emitFailed(Object e) {
     emit(
@@ -654,7 +671,7 @@ Future<void> _handleFileUpload({
     target = previous != null
         ? await reopenFileSaveTarget(previous)
         : await prepareFileSaveTarget(
-            destinationDirectory: config.destinationDirectory,
+            destinationDirectory: destination.destinationDirectory,
             cacheDirectory: config.cacheDirectory,
             fileName: desiredName,
             saveToGallery: shouldSaveToGallery,
