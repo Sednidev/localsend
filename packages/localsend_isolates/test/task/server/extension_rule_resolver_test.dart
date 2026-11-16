@@ -126,4 +126,53 @@ void main() {
       );
     });
   });
+
+  group('resolveIncomingFileDestination', () {
+    test('keeps the default destination without a matching rule', () {
+      final destination = resolveIncomingFileDestination(
+        fileName: 'file.pdf',
+        destinationDirectory: '/default',
+        saveToGallery: false,
+        destinationByExtension: const {},
+      );
+
+      expect(destination.destinationDirectory, '/default');
+      expect(destination.saveToGallery, isFalse);
+    });
+
+    test('keeps the gallery setting without a matching rule', () {
+      final destination = resolveIncomingFileDestination(
+        fileName: 'photo.jpg',
+        destinationDirectory: '/default',
+        saveToGallery: true,
+        destinationByExtension: const {'pdf': _pdfUri},
+      );
+
+      expect(destination.destinationDirectory, '/default');
+      expect(destination.saveToGallery, isTrue);
+    });
+
+    test('uses the folder of the matching rule', () {
+      final destination = resolveIncomingFileDestination(
+        fileName: 'folder/Report.PDF',
+        destinationDirectory: '/default',
+        saveToGallery: false,
+        destinationByExtension: const {'pdf': _pdfUri},
+      );
+
+      expect(destination.destinationDirectory, _pdfUri);
+    });
+
+    test('the rule folder wins over the gallery', () {
+      final destination = resolveIncomingFileDestination(
+        fileName: 'photo.JPG',
+        destinationDirectory: '/default',
+        saveToGallery: true,
+        destinationByExtension: const {'jpg': _pdfUri},
+      );
+
+      expect(destination.destinationDirectory, _pdfUri);
+      expect(destination.saveToGallery, isFalse);
+    });
+  });
 }
