@@ -6,6 +6,7 @@ import 'package:localsend_app/model/persistence/color_mode.dart';
 import 'package:localsend_app/pages/about/about_page.dart';
 import 'package:localsend_app/pages/changelog_page.dart';
 import 'package:localsend_app/pages/donation/donation_page.dart';
+import 'package:localsend_app/pages/settings/extension_rules_page.dart';
 import 'package:localsend_app/pages/settings/network_interfaces_page.dart';
 import 'package:localsend_app/pages/tabs/settings_tab_controller.dart';
 import 'package:localsend_app/provider/network/server/server_provider.dart';
@@ -246,6 +247,14 @@ class SettingsTab extends StatelessWidget {
                         child: Text(vm.settings.destination ?? t.settingsTab.receive.downloads, style: Theme.of(context).textTheme.titleMedium),
                       ),
                     ),
+                  ),
+                if (checkPlatform([TargetPlatform.android]))
+                  _ButtonEntry(
+                    label: t.settingsTab.receive.extensionRules,
+                    buttonLabel: t.general.open,
+                    onTap: () async {
+                      await context.push(() => const ExtensionRulesPage());
+                    },
                   ),
                 if (checkPlatformWithGallery())
                   _BooleanEntry(
