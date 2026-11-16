@@ -52,6 +52,7 @@ class Translations with BaseTranslations<AppLocale, Translations> {
   late final Translations$settingsTab$en settingsTab = Translations$settingsTab$en.internal(_root);
   late final Translations$troubleshootPage$en troubleshootPage = Translations$troubleshootPage$en.internal(_root);
   late final Translations$networkInterfacesPage$en networkInterfacesPage = Translations$networkInterfacesPage$en.internal(_root);
+  late final Translations$extensionRulesPage$en extensionRulesPage = Translations$extensionRulesPage$en.internal(_root);
   late final Translations$receiveHistoryPage$en receiveHistoryPage = Translations$receiveHistoryPage$en.internal(_root);
   late final Translations$apkPickerPage$en apkPickerPage = Translations$apkPickerPage$en.internal(_root);
   late final Translations$selectedFilesPage$en selectedFilesPage = Translations$selectedFilesPage$en.internal(_root);
@@ -329,6 +330,31 @@ class Translations$networkInterfacesPage$en {
 
   /// en: 'Blacklist'
   String get blacklist => 'Blacklist';
+}
+
+// Path: extensionRulesPage
+class Translations$extensionRulesPage$en {
+  Translations$extensionRulesPage$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Extension rules'
+  String get title => 'Extension rules';
+
+  /// en: 'Incoming files are saved to the folder of the first rule that matches their extension. Other files keep using the default destination folder.'
+  String get info =>
+      'Incoming files are saved to the folder of the first rule that matches their extension. Other files keep using the default destination folder.';
+
+  /// en: 'No rules yet'
+  String get empty => 'No rules yet';
+
+  /// en: 'Add rule'
+  String get add => 'Add rule';
+
+  /// en: 'This folder is no longer accessible. Matching files are saved to the default folder.'
+  String get invalid => 'This folder is no longer accessible. Matching files are saved to the default folder.';
 }
 
 // Path: receiveHistoryPage
@@ -785,6 +811,10 @@ class Translations$dialogs$en {
   late final Translations$dialogs$pin$en pin = Translations$dialogs$pin$en.internal(_root);
   late final Translations$dialogs$sendModeHelp$en sendModeHelp = Translations$dialogs$sendModeHelp$en.internal(_root);
   late final Translations$dialogs$zoom$en zoom = Translations$dialogs$zoom$en.internal(_root);
+  late final Translations$dialogs$extensionRuleDialog$en extensionRuleDialog = Translations$dialogs$extensionRuleDialog$en.internal(_root);
+  late final Translations$dialogs$extensionRuleDeleteDialog$en extensionRuleDeleteDialog = Translations$dialogs$extensionRuleDeleteDialog$en.internal(
+    _root,
+  );
 }
 
 // Path: sanitization
@@ -1132,6 +1162,9 @@ class Translations$settingsTab$receive$en {
 
   /// en: '(Downloads)'
   String get downloads => '(Downloads)';
+
+  /// en: 'Extension rules'
+  String get extensionRules => 'Extension rules';
 
   /// en: 'Save media to gallery'
   String get saveToGallery => 'Save media to gallery';
@@ -1834,6 +1867,72 @@ class Translations$dialogs$zoom$en {
 
   /// en: 'URL'
   String get title => 'URL';
+}
+
+// Path: dialogs.extensionRuleDialog
+class Translations$dialogs$extensionRuleDialog$en {
+  Translations$dialogs$extensionRuleDialog$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Add extension rule'
+  String get titleAdd => 'Add extension rule';
+
+  /// en: 'Edit extension rule'
+  String get titleEdit => 'Edit extension rule';
+
+  /// en: 'File extensions'
+  String get extensions => 'File extensions';
+
+  /// en: 'pdf, docx, png'
+  String get extensionsHint => 'pdf, docx, png';
+
+  /// en: 'Separate multiple extensions with commas or spaces. Upper and lower case are treated the same.'
+  String get extensionsHelp => 'Separate multiple extensions with commas or spaces. Upper and lower case are treated the same.';
+
+  /// en: 'Destination folder'
+  String get folder => 'Destination folder';
+
+  /// en: 'Choose folder'
+  String get chooseFolder => 'Choose folder';
+
+  /// en: 'Change folder'
+  String get changeFolder => 'Change folder';
+
+  /// en: 'No folder chosen'
+  String get noFolder => 'No folder chosen';
+
+  /// en: 'Choose a destination folder.'
+  String get noFolderError => 'Choose a destination folder.';
+
+  /// en: 'Enter at least one extension.'
+  String get noExtensions => 'Enter at least one extension.';
+
+  /// en: 'Already used by another rule: {extensions}'
+  String duplicateExtensions({required Object extensions}) => 'Already used by another rule: ${extensions}';
+
+  /// en: 'This folder is no longer accessible. Choose another folder.'
+  String get folderUnavailable => 'This folder is no longer accessible. Choose another folder.';
+
+  /// en: 'Could not open the folder picker.'
+  String get pickFailed => 'Could not open the folder picker.';
+}
+
+// Path: dialogs.extensionRuleDeleteDialog
+class Translations$dialogs$extensionRuleDeleteDialog$en {
+  Translations$dialogs$extensionRuleDeleteDialog$en.internal(this._root);
+
+  final Translations _root; // ignore: unused_field
+
+  // Translations
+
+  /// en: 'Delete rule?'
+  String get title => 'Delete rule?';
+
+  /// en: 'Files with these extensions will be saved to the default folder again.'
+  String get content => 'Files with these extensions will be saved to the default folder again.';
 }
 
 // Path: settingsTab.general.brightnessOptions

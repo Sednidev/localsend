@@ -122,6 +122,7 @@
       "autoFinish": "Auto Finish",
       "destination": "Save to folder",
       "downloads": "(Downloads)",
+      "extensionRules": "Extension rules",
       "saveToGallery": "Save media to gallery",
       "saveToHistory": "Save to history",
       "verifyChecksums": "Verify checksums when receiving files"
@@ -186,6 +187,13 @@
     "preview": "Preview",
     "whitelist": "Whitelist",
     "blacklist": "Blacklist"
+  },
+  "extensionRulesPage": {
+    "title": "Extension rules",
+    "info": "Incoming files are saved to the folder of the first rule that matches their extension. Other files keep using the default destination folder.",
+    "empty": "No rules yet",
+    "add": "Add rule",
+    "invalid": "This folder is no longer accessible. Matching files are saved to the default folder."
   },
   "receiveHistoryPage": {
     "title": "History",
@@ -524,6 +532,26 @@
     },
     "zoom": {
       "title": "URL"
+    },
+    "extensionRuleDialog": {
+      "titleAdd": "Add extension rule",
+      "titleEdit": "Edit extension rule",
+      "extensions": "File extensions",
+      "extensionsHint": "pdf, docx, png",
+      "extensionsHelp": "Separate multiple extensions with commas or spaces. Upper and lower case are treated the same.",
+      "folder": "Destination folder",
+      "chooseFolder": "Choose folder",
+      "changeFolder": "Change folder",
+      "noFolder": "No folder chosen",
+      "noFolderError": "Choose a destination folder.",
+      "noExtensions": "Enter at least one extension.",
+      "duplicateExtensions": "Already used by another rule: {extensions}",
+      "folderUnavailable": "This folder is no longer accessible. Choose another folder.",
+      "pickFailed": "Could not open the folder picker."
+    },
+    "extensionRuleDeleteDialog": {
+      "title": "Delete rule?",
+      "content": "Files with these extensions will be saved to the default folder again."
     }
   },
   "sanitization": {
