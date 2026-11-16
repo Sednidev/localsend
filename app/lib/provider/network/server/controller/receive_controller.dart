@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:localsend_app/gen/strings.g.dart';
 import 'package:localsend_app/model/persistence/extension_rule.dart';
 import 'package:localsend_app/model/state/server/receive_session_state.dart';
 import 'package:localsend_app/model/state/server/receiving_file.dart';
@@ -24,9 +25,11 @@ import 'package:localsend_app/provider/security_provider.dart';
 import 'package:localsend_app/provider/selection/selected_receiving_files_provider.dart';
 import 'package:localsend_app/provider/selection/selected_sending_files_provider.dart';
 import 'package:localsend_app/provider/settings_provider.dart';
+import 'package:localsend_app/util/extension_rule_validation.dart';
 import 'package:localsend_app/util/native/directories.dart';
 import 'package:localsend_app/util/native/platform_check.dart';
 import 'package:localsend_app/util/native/tray_helper.dart';
+import 'package:localsend_app/util/ui/snackbar.dart';
 import 'package:localsend_app/widget/dialogs/open_file_dialog.dart';
 import 'package:localsend_isolates/isolate.dart';
 import 'package:localsend_isolates/model/device.dart';
@@ -449,6 +452,33 @@ class ReceiveController {
   }
 
   /// An upload session ended on the Rust server.
+  /// A file was saved to the default folder because the folder of the rule it
+  /// matched could not be written to. The rule is marked as invalid so that it
+  /// is not tried again, and the user is told about it.
+  Future<void> onExtensionRuleUnavailable(HttpServerExtensionRuleUnavailableEvent event) async {
+    final marked = await markRulesForUnavailableFolder(
+      rules: server.ref.read(extensionRulesProvider),
+      folderUri: event.folderUri,
+    );
+    if (marked.isEmpty) {
+      return;
+    }
+
+    for (final rule in marked) {
+      await server.ref.redux(extensionRulesProvider).dispatchAsync(UpdateExtensionRuleAction(rule));
+    }
+
+    _showRuleFolderUnavailable(marked.first.folderName);
+  }
+
+  void _showRuleFolderUnavailable(String folderName) {
+    final context = Routerino.navigatorKey.currentContext;
+    if (context == null) {
+      return;
+    }
+    context.showSnackBar(t.extensionRulesPage.folderUnavailableNotification(folder: folderName));
+  }
+
   void onSessionEnd(HttpServerSessionEndEvent event) {
     final receiveSession = server.getStateOrNull()?.session;
     if (receiveSession == null || receiveSession.sessionId != event.sessionId) {

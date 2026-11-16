@@ -56,3 +56,27 @@ Future<ExtensionRule> _validateRule(ExtensionRule rule, RuleFolderInfoLookup loo
   }
   return rule.copyWith(invalid: false, folderName: folderName);
 }
+
+/// Marks the rules that save into [folderUri] as invalid when that folder is
+/// not accessible anymore.
+///
+/// Called when writing a received file into a rule folder failed: the file has
+/// already been saved to the default folder at that point. Only rules that are
+/// not invalid yet are checked, and a rule stays valid when its folder turns
+/// out to be accessible, because the failure then had another cause.
+///
+/// Returns the rules to store and to report to the user; empty when nothing
+/// changed.
+Future<List<ExtensionRule>> markRulesForUnavailableFolder({
+  required Iterable<ExtensionRule> rules,
+  required String folderUri,
+  RuleFolderInfoLookup? lookUp,
+}) async {
+  final affected = rules.where((rule) => rule.folderUri == folderUri && !rule.invalid).toList();
+  if (affected.isEmpty) {
+    return const [];
+  }
+
+  final validated = await validateExtensionRuleFolders(rules: affected, lookUp: lookUp);
+  return validated.where((rule) => rule.invalid).toList();
+}

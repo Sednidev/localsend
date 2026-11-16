@@ -134,4 +134,59 @@ void main() {
       expect(result, isEmpty);
     });
   });
+
+  group('markRulesForUnavailableFolder', () {
+    test('marks the rule that saves into the failed folder', () async {
+      final rule = _rule();
+
+      final marked = await markRulesForUnavailableFolder(
+        rules: [rule],
+        folderUri: _uri,
+        lookUp: (_) async => _info(accessible: false),
+      );
+
+      expect(marked.single.id, rule.id);
+      expect(marked.single.invalid, isTrue);
+    });
+
+    test('ignores rules of other folders', () async {
+      final marked = await markRulesForUnavailableFolder(
+        rules: [_rule(id: 'other', folderUri: 'content://other')],
+        folderUri: _uri,
+        lookUp: (_) async => _info(accessible: false),
+      );
+
+      expect(marked, isEmpty);
+    });
+
+    test('ignores rules that are invalid already', () async {
+      final marked = await markRulesForUnavailableFolder(
+        rules: [_rule(invalid: true)],
+        folderUri: _uri,
+        lookUp: (_) async => _info(accessible: false),
+      );
+
+      expect(marked, isEmpty);
+    });
+
+    test('keeps the rule when the folder is accessible', () async {
+      final marked = await markRulesForUnavailableFolder(
+        rules: [_rule()],
+        folderUri: _uri,
+        lookUp: (_) async => _info(accessible: true, providerName: 'pdf'),
+      );
+
+      expect(marked, isEmpty);
+    });
+
+    test('keeps the rule when the check fails', () async {
+      final marked = await markRulesForUnavailableFolder(
+        rules: [_rule()],
+        folderUri: _uri,
+        lookUp: (_) async => throw Exception('provider unavailable'),
+      );
+
+      expect(marked, isEmpty);
+    });
+  });
 }

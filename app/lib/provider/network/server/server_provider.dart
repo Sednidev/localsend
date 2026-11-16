@@ -352,6 +352,9 @@ class ServerService extends Notifier<ServerState?> {
       case HttpServerFileUploadResultEvent():
         // ignore: discarded_futures
         _receiveController.onFileUploadResult(event);
+      case HttpServerExtensionRuleUnavailableEvent():
+        // ignore: discarded_futures
+        _receiveController.onExtensionRuleUnavailable(event);
       case HttpServerSessionEndEvent():
         _receiveController.onSessionEnd(event);
       case HttpServerPrepareUploadAbortedEvent():
