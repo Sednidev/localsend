@@ -138,6 +138,7 @@ void main() {
 
       expect(destination.destinationDirectory, '/default');
       expect(destination.saveToGallery, isFalse);
+      expect(destination.ruleFolderUri, isNull);
     });
 
     test('keeps the gallery setting without a matching rule', () {
@@ -161,6 +162,7 @@ void main() {
       );
 
       expect(destination.destinationDirectory, _pdfUri);
+      expect(destination.ruleFolderUri, _pdfUri);
     });
 
     test('the rule folder wins over the gallery', () {
@@ -173,6 +175,33 @@ void main() {
 
       expect(destination.destinationDirectory, _pdfUri);
       expect(destination.saveToGallery, isFalse);
+      expect(destination.ruleFolderUri, _pdfUri);
+    });
+  });
+
+  group('withoutUnavailableRuleFolders', () {
+    test('returns the same map when no folder failed', () {
+      const destinations = {'pdf': _pdfUri};
+
+      final result = withoutUnavailableRuleFolders(destinationByExtension: destinations, unavailableFolders: const {});
+
+      expect(result, destinations);
+    });
+
+    test('drops every extension of the failed folder', () {
+      const destinations = {'doc': _docUri, 'docx': _docUri, 'pdf': _pdfUri};
+
+      final result = withoutUnavailableRuleFolders(destinationByExtension: destinations, unavailableFolders: {_docUri});
+
+      expect(result, {'pdf': _pdfUri});
+    });
+
+    test('keeps folders that did not fail', () {
+      const destinations = {'pdf': _pdfUri, 'doc': _docUri};
+
+      final result = withoutUnavailableRuleFolders(destinationByExtension: destinations, unavailableFolders: {'content://other'});
+
+      expect(result, destinations);
     });
   });
 }

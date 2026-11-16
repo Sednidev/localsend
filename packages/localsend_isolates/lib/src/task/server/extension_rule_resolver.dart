@@ -44,9 +44,14 @@ class IncomingFileDestination {
   /// gallery, so the file is written there directly.
   final bool saveToGallery;
 
+  /// The SAF tree URI of the rule folder that matched, `null` when the file
+  /// went to [destinationDirectory] because no rule matched.
+  final String? ruleFolderUri;
+
   const IncomingFileDestination({
     required this.destinationDirectory,
     required this.saveToGallery,
+    this.ruleFolderUri,
   });
 }
 
@@ -75,5 +80,24 @@ IncomingFileDestination resolveIncomingFileDestination({
   return IncomingFileDestination(
     destinationDirectory: ruleDestination,
     saveToGallery: false,
+    ruleFolderUri: ruleDestination,
   );
+}
+
+/// Drops every destination whose folder is in [unavailableFolders].
+///
+/// A folder that failed once during a session is not tried again, so the next
+/// matching file goes straight to the default folder instead of failing again.
+Map<String, String> withoutUnavailableRuleFolders({
+  required Map<String, String> destinationByExtension,
+  required Set<String> unavailableFolders,
+}) {
+  if (unavailableFolders.isEmpty) {
+    return destinationByExtension;
+  }
+
+  return {
+    for (final entry in destinationByExtension.entries)
+      if (!unavailableFolders.contains(entry.value)) entry.key: entry.value,
+  };
 }

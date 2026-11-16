@@ -294,6 +294,24 @@ class HttpServerPrepareUploadAbortedEvent extends HttpServerEvent {
   HttpServerPrepareUploadAbortedEvent({required this.sessionId});
 }
 
+/// The folder of an extension rule could not be written to, e.g. because it
+/// was deleted or its permission was revoked after the rules were loaded.
+///
+/// The affected file was saved to the default destination folder instead. The
+/// app marks the rule as invalid, so further files fall back without trying the
+/// folder again, and notifies the user.
+class HttpServerExtensionRuleUnavailableEvent extends HttpServerEvent {
+  final String sessionId;
+
+  /// SAF tree URI of the folder that could not be written to.
+  final String folderUri;
+
+  HttpServerExtensionRuleUnavailableEvent({
+    required this.sessionId,
+    required this.folderUri,
+  });
+}
+
 /// The remote device cancels a transfer this application is currently
 /// *sending* to it. [sessionId] is the session ID issued by the remote device
 /// during prepare-upload. The application must verify that [ip] matches the
@@ -377,6 +395,12 @@ class _ReceiveSession {
   /// Remembered so that another attempt at the same file overwrites it instead
   /// of being saved next to it under a numbered name.
   final Map<String, FileSaveTarget> targets = {};
+
+  /// Rule folders that could not be written to during this session.
+  ///
+  /// A folder that failed once is not tried again, so the remaining files go
+  /// straight to the default folder instead of failing one by one.
+  final Set<String> unavailableRuleFolders = {};
 
   _ReceiveSession(this.config);
 }
@@ -645,9 +669,15 @@ Future<void> _handleFileUpload({
     fileName: desiredName,
     destinationDirectory: config.destinationDirectory,
     saveToGallery: config.saveToGallery,
-    destinationByExtension: config.extensionRuleDestinations,
+    // Folders that already failed in this session are left out, so the next
+    // matching file goes straight to the default folder.
+    destinationByExtension: withoutUnavailableRuleFolders(
+      destinationByExtension: config.extensionRuleDestinations,
+      unavailableFolders: session.unavailableRuleFolders,
+    ),
   );
-  final shouldSaveToGallery = destination.saveToGallery && (isImage || dartFile.fileType == FileType.video);
+  final ruleDestination = destination.ruleFolderUri;
+  var shouldSaveToGallery = destination.saveToGallery && (isImage || dartFile.fileType == FileType.video);
 
   void emitFailed(Object e) {
     emit(
@@ -661,9 +691,22 @@ Future<void> _handleFileUpload({
     );
   }
 
+  /// The Rust server is still waiting for the target; failing it ends the
+  /// sender's request which would otherwise hang forever.
+  Future<void> failUpload(Object error, [StackTrace? stackTrace]) async {
+    _logger.severe('Failed to prepare save target', error, stackTrace);
+    try {
+      await ref.read(httpServerProvider).failFileUpload(sessionId: sessionId, fileId: fileId);
+    } catch (e) {
+      _logger.warning('Could not fail the pending file upload', e);
+    }
+
+    emitFailed(error);
+  }
+
   _logger.info('Saving ${dartFile.fileName}');
 
-  final FileSaveTarget target;
+  late final FileSaveTarget target;
   try {
     // A previous attempt at this file already picked a destination, which this
     // attempt overwrites instead of creating a numbered version.
@@ -678,21 +721,41 @@ Future<void> _handleFileUpload({
             createdDirectories: session.createdDirectories,
             androidSdkInt: config.androidSdkInt,
           );
-    session.targets[fileId] = target;
   } catch (e, st) {
-    _logger.severe('Failed to prepare save target', e, st);
-
-    // The Rust server is still waiting for the target; failing it ends the
-    // sender's request which would otherwise hang forever.
-    try {
-      await ref.read(httpServerProvider).failFileUpload(sessionId: sessionId, fileId: fileId);
-    } catch (e) {
-      _logger.warning('Could not fail the pending file upload', e);
+    if (ruleDestination == null) {
+      await failUpload(e, st);
+      return;
     }
 
-    emitFailed(e);
-    return;
+    // The folder of the rule is gone or its permission was revoked. The rule
+    // cannot be used anymore, so the file goes to the default folder and the
+    // app is told to mark the rule as invalid.
+    _logger.warning('Could not save to the rule folder $ruleDestination, falling back to ${config.destinationDirectory}', e, st);
+    session.unavailableRuleFolders.add(ruleDestination);
+    emit(
+      HttpServerExtensionRuleUnavailableEvent(
+        sessionId: sessionId,
+        folderUri: ruleDestination,
+      ),
+    );
+
+    shouldSaveToGallery = config.saveToGallery && (isImage || dartFile.fileType == FileType.video);
+    try {
+      target = await prepareFileSaveTarget(
+        destinationDirectory: config.destinationDirectory,
+        cacheDirectory: config.cacheDirectory,
+        fileName: desiredName,
+        saveToGallery: shouldSaveToGallery,
+        createdDirectories: session.createdDirectories,
+        androidSdkInt: config.androidSdkInt,
+      );
+    } catch (fallbackError, fallbackStackTrace) {
+      await failUpload(fallbackError, fallbackStackTrace);
+      return;
+    }
   }
+
+  session.targets[fileId] = target;
 
   try {
     // The Rust server writes the file and reports the progress.
